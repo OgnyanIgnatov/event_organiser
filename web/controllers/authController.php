@@ -7,22 +7,25 @@
     $email = "";
 
     if(isset($_POST['signup-btn'])) {
-        $username = $_POST['username'];
-        $email = $_POST['email'];
+        $username = trim($_POST['username']);
+        $email = trim($_POST['email']);
         $password = $_POST['password'];
         $passwordConf = $_POST['passwordConf'];
         $role = $_POST['role'];
+
+        if (!in_array($role, ['client', 'organiser'], true)) {
+            $errors['role'] = "Invalid role";
+        }
 
         if(empty($username)) {
          $errors['username'] = "Username required"; 
         }
 
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = "Email address is invalid";
-        }
-
         if(empty($email)) {
-            $errors['email'] = "Email required"; 
+            $errors['email'] = "Invalid email"; 
+        }
+        else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = "Email address is invalid";
         }
 
         if(empty($password)) {
@@ -80,7 +83,19 @@
 
                 $_SESSION['message'] = "You are now logged in!";
                 $_SESSION['alert-class'] = "alert-success";
-                header('location: index.php');
+                switch($role){
+                    case 'client':
+                        header('Location: client_dashboard.php');
+                        break;
+                    case 'organiser':
+                        header('Location: organiser_dashboard.php');
+                        break;
+                    case 'admin':
+                        header('Location: admin_dashboard.php');
+                        break;
+                    default:
+                        header('Location: index.php');
+                }
                 exit();
             } else {
                 $errors['db_error'] = "Database error: failed to register";
@@ -100,6 +115,7 @@
             $errors['password'] = "Password required"; 
         }
 
+
         if(count($errors) === 0) {
             $sql = "SELECT * FROM users WHERE email=? OR username=? LIMIT 1";
             $stmt = $connection->prepare($sql);
@@ -109,8 +125,18 @@
             $result = $stmt->get_result();
             $user = $result->fetch_assoc();
             $stmt->close();
-    
-            if (password_verify($password, $user['password'])) {
+
+            if(!$user){
+                $errors['login_fail'] = "Wrong credentials!";
+            }
+            else if((int)$user['is_active'] === 0){
+                $errors['login_fail'] = "Account is disabled";
+            }
+            else if(!password_verify($password, $user['password']))
+            {
+                $errors['login_fail'] = "Wrong credentials";
+            }
+            else{
                 $_SESSION['id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['email'] = $user['email'];
@@ -132,9 +158,8 @@
                         header('Location: index.php');
                 }
                 exit();
-            } else {
-                $errors['login_fail'] = "Wrong credentials";
             }
+    
         }
     }
 
