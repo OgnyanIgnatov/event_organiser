@@ -152,7 +152,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
                     <td><?= htmlspecialchars($r['event_type']) ?></td>
                     <td><?= $r['requested_date'] ?></td>
                     <td>
-                        <a href="feedback.php?request_id=<?= $r['id'] ?>" class="button">Give Feedback</a> |
+                        <a href="feedback.php?request_id=<?= $r['id'] ?>" class="button">Give Feedback</a>
                         <a href="uploadGallery.php?request_id=<?= $r['id'] ?>" class="button">
                             Upload Gallery
                         </a>
