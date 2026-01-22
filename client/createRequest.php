@@ -20,8 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $event_type     = $_POST['event_type'] ?? '';
     $requested_date = $_POST['requested_date'] ?? '';
     $participants   = (int)($_POST['participants'] ?? 0);
+    $is_public = (int)($_POST['is_public'] ?? 0);
 
-    $errors = validateRequest($organiser_id, $event_type, $requested_date, $participants);
+    $errors = validateRequest($organiser_id, $event_type, $requested_date, $participants, $is_public);
 
     if (!$errors) {
         $stmt = $connection->prepare("SELECT id FROM users WHERE id=? AND role='organiser' AND is_active=1 LIMIT 1");
@@ -35,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         $client_id = (int)$_SESSION['id'];
         $stmt = $connection->prepare("
-            INSERT INTO event_requests (client_id, organiser_id, event_type, requested_date, participants)
-            VALUES (?,?,?,?,?)
+            INSERT INTO event_requests (client_id, organiser_id, event_type, requested_date, participants, is_public)
+            VALUES (?,?,?,?,?,?)
         ");
-        $stmt->bind_param("iissi", $client_id, $organiser_id, $event_type, $requested_date, $participants);
+        $stmt->bind_param("iissii", $client_id, $organiser_id, $event_type, $requested_date, $participants, $is_public);
 
         if ($stmt->execute()) {
             $success = "Request created successfully";
@@ -99,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label for="event_type">Event type</label>
             <select name="event_type" id="event_type" required>
-                <option value="">-- select type --</option>
+                <option value="">Select type</option>
                 <?php
                 $allowed_types = ['private_party', 'corporate party', 'team_building', 'birthday', 'other'];
                 foreach ($allowed_types as $t): ?>
@@ -112,6 +113,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="participants">Participants</label>
             <input type="number" name="participants" id="participants" min="1" max="500"
                    value="<?php echo htmlspecialchars((string)$participants); ?>" required>
+            
+            <label>Visibility</label>
+            <select name="is_public" id="is_public">
+                <option value="-1">Select visibility</option>
+                <option value="0">Private</option>
+                <option value="1">Public</option>
+            </select>
 
             <button type="submit">Submit</button>
         </form>

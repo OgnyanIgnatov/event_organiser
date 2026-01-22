@@ -10,8 +10,9 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request_id = (int)($_POST['request_id'] ?? 0);
     $action     = $_POST['action'] ?? '';
+    $note = trim($_POST['organiser_note'] ?? '');
 
-    $result = updateRequestStatus($request_id, $organiser_id, $action);
+    $result = updateRequestStatus($request_id, $organiser_id, $action, $note);
 
     if ($result === true) {
         header("Location: dashboard.php?success=1");
@@ -44,8 +45,10 @@ $completedRequests  = getCompletedRequests($organiser_id);
         <h1>Organiser Dashboard</h1>
         <p>
             Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> |
+            <a href="../index.php">Home Page</a> | 
             <a href="../profile/editProfile.php">Edit Profile</a> |
-            <a href="../auth/login.php?logout=1">Logout</a>
+            <a href="../reports/reportRequest.php">Report Client</a> |
+            <a href="../auth/login.php?logout=1">Logout</a> 
         </p>
 
         <?php if ($success): ?>
@@ -69,7 +72,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
             <thead>
             <tr>
                 <th>ID</th><th>Client</th><th>Email</th><th>Type</th>
-                <th>Date</th><th>People</th><th>Actions</th>
+                <th>Date</th><th>People</th><th>Visibility</th><th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -81,6 +84,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
                     <td><?= htmlspecialchars($r['event_type']) ?></td>
                     <td><?= $r['requested_date'] ?></td>
                     <td><?= $r['participants'] ?></td>
+                    <td><?= ($r['is_public'] === 1 ? 'Public' : 'Private');?></td>
                     <td>
                         <form method="post" style="display:inline">
                             <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
@@ -91,6 +95,12 @@ $completedRequests  = getCompletedRequests($organiser_id);
                             <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
                             <input type="hidden" name="action" value="reject">
                             <button onclick="return confirm('Reject request?')">Reject</button>
+                        </form>
+                        <form method="post" style="display:inline">
+                            <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                            <input type="hidden" name="action" value="needs_correction">
+                            <button>Needs correction</button>
+                            <input type="text" name="organiser_note" placeholder="Write a note" required>
                         </form>
                     </td>
                 </tr>
@@ -117,7 +127,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
                 <tr>
                     <td><?= $r['id'] ?></td>
                     <td><?= htmlspecialchars($r['client_name']) ?></td>
-                    <td><?= nl2br(htmlspecialchars($r['correction_note'])) ?></td>
+                    <td><?= nl2br(htmlspecialchars($r['organiser_note'] ?? '')) ?></td>
                     <td>
                         <form method="post">
                             <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
@@ -152,7 +162,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
                     <td><?= htmlspecialchars($r['event_type']) ?></td>
                     <td><?= $r['requested_date'] ?></td>
                     <td>
-                        <a href="feedback.php?request_id=<?= $r['id'] ?>" class="button">Give Feedback</a>
+                        <a href="feedback.php?request_id=<?= $r['id'] ?>" class="button">Give Feedback</a><br>
                         <a href="uploadGallery.php?request_id=<?= $r['id'] ?>" class="button">
                             Upload Gallery
                         </a>

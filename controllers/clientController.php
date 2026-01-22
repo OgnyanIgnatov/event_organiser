@@ -4,7 +4,7 @@ require_once  '../config/db.php';
 function getClientRequests(int $client_id): array {
     global $connection;
     $stmt = $connection->prepare("
-        SELECT er.id, er.event_type, er.requested_date, er.participants, er.status, er.created_at, er.correction_note,
+        SELECT er.id, er.event_type, er.requested_date, er.participants, er.status, er.created_at, er.correction_note, er.organiser_note,
                u.username AS organiser_name
         FROM event_requests er 
         JOIN users u ON u.id = er.organiser_id 
@@ -30,7 +30,7 @@ function getActiveOrganisers(): array {
     return $organisers;
 }
 
-function validateRequest(int $organiser_id, string $event_type, string $requested_date, int $participants): array {
+function validateRequest(int $organiser_id, string $event_type, string $requested_date, int $participants, int $is_public): array {
     $errors = [];
     $allowed_types = ['private_party', 'corporate party', 'team_building', 'birthday', 'other'];
 
@@ -44,6 +44,8 @@ function validateRequest(int $organiser_id, string $event_type, string $requeste
     }
 
     if ($participants < 1 || $participants > 500) $errors[] = "Participants must be between 1 and 500";
+
+    if (!in_array($is_public, [0,1], true)) $errors[] = "Not a valid visibility";
 
     return $errors;
 }
@@ -95,14 +97,16 @@ function updateRequestStatusClient(int $request_id, int $client_id, string $acti
         $stmt = $connection->prepare("
             UPDATE event_requests
             SET status = ?, correction_note = ?
-            WHERE id = ? AND client_id = ? AND status='accepted_by_organiser'
+            WHERE id = ? AND client_id = ? 
+            AND status IN ('accepted_by_organiser, 'needs_correction')
         ");
         $stmt->bind_param('ssii', $newStatus, $note, $request_id, $client_id);
     } else {
         $stmt = $connection->prepare("
             UPDATE event_requests
             SET status = ?
-            WHERE id = ? AND client_id = ? AND status='accepted_by_organiser'
+            WHERE id = ? AND client_id = ? 
+            AND status IN ('accepted_by_organiser, 'needs_correction')
         ");
         $stmt->bind_param('sii', $newStatus, $request_id, $client_id);
     }

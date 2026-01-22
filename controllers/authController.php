@@ -111,7 +111,7 @@ if (isset($_POST['login-btn'])) {
         if (!$user) {
             $errors[] = "Wrong credentials";
         } elseif ((int)$user['is_active'] === 0) {
-            $errors[] = "Account is disabled";
+            $errors[] = "Account is disabled. Please contact support@event.organiser.com to review your case.";
         } elseif (!password_verify($password, $user['password'])) {
             $errors[] = "Wrong credentials";
         } else {
