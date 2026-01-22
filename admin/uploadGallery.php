@@ -1,31 +1,23 @@
 <?php
 session_start();
 require_once '../config/db.php';
-require_once '../middlewares/requireClient.php'; 
+require_once '../middlewares/requireAdmin.php';
 
 $request_id = (int)($_GET['request_id'] ?? 0);
 if (!$request_id) die("Invalid request");
 
-$user_id = $_SESSION['id'];
-$user_role = $_SESSION['role'];
-
 $errors = [];
 $success = "";
 
-if ($user_role === 'client') {
-    $stmt = $connection->prepare("SELECT id FROM event_requests WHERE id=? AND client_id=? LIMIT 1");
-    $stmt->bind_param("ii", $request_id, $user_id);
-} else if ($user_role === 'organiser') {
-    $stmt = $connection->prepare("SELECT id, status FROM event_requests WHERE id=? AND organiser_id=? LIMIT 1");
-    $stmt->bind_param("ii", $request_id, $user_id);
-}
+$stmt = $connection->prepare("SELECT status FROM event_requests WHERE id=? LIMIT 1");
+$stmt->bind_param('i', $request_id);
 $stmt->execute();
 $requestData = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$requestData) die("Access denied");
+if (!$requestData) die("Request not found");
 
-if ($user_role === 'organiser' && isset($_POST['upload']) && isset($_FILES['image'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     $upload_dir = '../uploads/';
     if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
@@ -35,9 +27,9 @@ if ($user_role === 'organiser' && isset($_POST['upload']) && isset($_FILES['imag
     $dest = $upload_dir . $filename;
 
     if (move_uploaded_file($file['tmp_name'], $dest)) {
-        $is_public = isset($_POST['is_public']) ? 1 : 0;
         $stmt = $connection->prepare("INSERT INTO galleries (request_id, image_path, is_public) VALUES (?,?,?)");
-        $stmt->bind_param("isi", $request_id, $filename, $is_public);
+        $public = isset($_POST['is_public']) ? 1 : 0;
+        $stmt->bind_param("isi", $request_id, $filename, $public);
         if ($stmt->execute()) {
             $success = "Image uploaded successfully!";
         } else {
@@ -49,13 +41,8 @@ if ($user_role === 'organiser' && isset($_POST['upload']) && isset($_FILES['imag
     }
 }
 
-if ($user_role === 'client') {
-    $stmt = $connection->prepare("SELECT * FROM galleries WHERE request_id=? AND is_public=1 ORDER BY created_at ASC");
-    $stmt->bind_param("i", $request_id);
-} else {
-    $stmt = $connection->prepare("SELECT * FROM galleries WHERE request_id=? ORDER BY created_at ASC");
-    $stmt->bind_param("i", $request_id);
-}
+$stmt = $connection->prepare("SELECT * FROM galleries WHERE request_id=? ORDER BY created_at ASC");
+$stmt->bind_param("i", $request_id);
 $stmt->execute();
 $images = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -71,34 +58,19 @@ $stmt->close();
 <div class="container">
     <div class="card">
         <h1>Event Gallery</h1>
-        <p><a href="dashboard.php">Back to Dashboard</a></p>
+        <p><a href="dashboard.php" class="button">Back to Dashboard</a></p>
 
         <?php if ($success): ?>
             <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
         <?php endif; ?>
-
         <?php if ($errors): ?>
             <div class="alert alert-error">
                 <ul><?php foreach ($errors as $e) echo "<li>".htmlspecialchars($e)."</li>"; ?></ul>
             </div>
         <?php endif; ?>
 
-        <?php if ($user_role === 'organiser' && $requestData['status'] !== 'accepted_by_client'): ?>
-        <form method="post" enctype="multipart/form-data">
-            <label>Select Image:</label>
-            <input type="file" name="image" accept="image/*" required>
-            <label><input type="checkbox" name="is_public"> Public</label>
-            <button type="submit" name="upload">Upload</button>
-        </form>
-        <?php elseif ($user_role === 'client'): ?>
-            <?php if (!$images): ?>
-                <p>No public images available yet.</p>
-            <?php else: ?>
-                <p>Viewing public images only.</p>
-            <?php endif; ?>
-        <?php endif; ?>
-
         <?php if ($images): ?>
+            <h2>Uploaded Images</h2>
             <div class="gallery">
                 <?php foreach ($images as $img): ?>
                     <div>
@@ -106,6 +78,20 @@ $stmt->close();
                     </div>
                 <?php endforeach; ?>
             </div>
+        <?php else: ?>
+            <p>No images uploaded yet.</p>
+        <?php endif; ?>
+
+        <?php if (in_array($requestData['status'], ['accepted_by_organiser','accepted_by_client','declined_by_client'])): ?>
+            <form method="post" enctype="multipart/form-data" style="margin-top: 1em;">
+                <div class="form-group">
+                    <label>Select Image:</label>
+                    <input type="file" name="image" accept="image/*" required>
+                </div>
+                <button type="submit" class="button">Upload</button>
+            </form>
+        <?php else: ?>
+            <p>Gallery is available for viewing.</p>
         <?php endif; ?>
     </div>
 </div>

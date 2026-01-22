@@ -12,15 +12,24 @@ $organiser_id = '';
 $event_type = '';
 $requested_date = '';
 $participants = '';
+$is_public = 0;
 
 $organisers = getActiveOrganisers();
+
+$allowed_types = [
+    'private_party'   => 'Private Party',
+    'corporate_party' => 'Corporate Party',
+    'team_building'   => 'Team Building',
+    'birthday'        => 'Birthday',
+    'other'           => 'Other'
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $organiser_id   = (int)($_POST['organiser_id'] ?? 0);
     $event_type     = $_POST['event_type'] ?? '';
     $requested_date = $_POST['requested_date'] ?? '';
     $participants   = (int)($_POST['participants'] ?? 0);
-    $is_public = (int)($_POST['is_public'] ?? 0);
+    $is_public      = (int)($_POST['is_public'] ?? 0);
 
     $errors = validateRequest($organiser_id, $event_type, $requested_date, $participants, $is_public);
 
@@ -43,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($stmt->execute()) {
             $success = "Request created successfully";
-
             $organiser_id = '';
             $event_type = '';
             $requested_date = '';
             $participants = '';
+            $is_public = 0;
         } else {
             $errors[] = "Database error";
         }
@@ -69,62 +78,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card">
         <h1>Create Event Request</h1>
         <p><a href="dashboard.php">Back to dashboard</a></p>
-
         <?php if ($success): ?>
-            <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
+            <div class="alert alert-success"><?= htmlspecialchars($success); ?></div>
         <?php endif; ?>
-
         <?php if ($errors): ?>
             <div class="alert alert-error">
                 <ul>
                     <?php foreach ($errors as $e): ?>
-                        <li><?php echo htmlspecialchars($e); ?></li>
+                        <li><?= htmlspecialchars($e); ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
         <?php endif; ?>
-
         <form method="post" action="createRequest.php">
             <label for="organiser">Organiser</label>
             <select name="organiser_id" id="organiser" required>
-                <option value="">-- select organiser --</option>
+                <option value="">Select Organiser</option>
                 <?php foreach ($organisers as $o): ?>
-                    <option value="<?php echo (int)$o['id']; ?>" <?php echo ((string)$organiser_id === (string)$o['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($o['username']); ?>
+                    <option value="<?= (int)$o['id']; ?>" <?= ((string)$organiser_id === (string)$o['id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($o['username']); ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-
             <label for="requested_date">Date</label>
-            <input type="date" name="requested_date" id="requested_date" value="<?php echo htmlspecialchars($requested_date); ?>" required>
-
+            <input type="date" name="requested_date" id="requested_date" value="<?= htmlspecialchars($requested_date); ?>" required>
             <label for="event_type">Event type</label>
             <select name="event_type" id="event_type" required>
                 <option value="">Select type</option>
-                <?php
-                $allowed_types = ['private_party', 'corporate party', 'team_building', 'birthday', 'other'];
-                foreach ($allowed_types as $t): ?>
-                    <option value="<?php echo htmlspecialchars($t); ?>" <?php echo ($event_type === $t) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($t); ?>
+                <?php foreach ($allowed_types as $key => $label): ?>
+                    <option value="<?= htmlspecialchars($key); ?>" <?= ($event_type === $key) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($label); ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-
             <label for="participants">Participants</label>
             <input type="number" name="participants" id="participants" min="1" max="500"
-                   value="<?php echo htmlspecialchars((string)$participants); ?>" required>
-            
-            <label>Visibility</label>
-            <select name="is_public" id="is_public">
-                <option value="-1">Select visibility</option>
-                <option value="0">Private</option>
-                <option value="1">Public</option>
+                   value="<?= htmlspecialchars((string)$participants); ?>" required>
+            <label for="is_public">Visibility</label>
+            <select name="is_public" id="is_public" required>
+                <option value="0" <?= $is_public === 0 ? 'selected' : '' ?>>Private</option>
+                <option value="1" <?= $is_public === 1 ? 'selected' : '' ?>>Public</option>
             </select>
 
             <button type="submit">Submit</button>
         </form>
     </div>
 </div>
-
 </body>
 </html>

@@ -16,7 +16,8 @@ function updateRequestByClient(
     int $client_id,
     string $event_type,
     string $requested_date,
-    int $participants
+    int $participants,
+    int $is_public
 ) {
     global $connection;
 
@@ -28,7 +29,7 @@ function updateRequestByClient(
     ");
     $stmt->bind_param("ssiii",
         $event_type, $requested_date, $participants,
-        $request_id, $client_id
+        $request_id, $client_id, $is_public
     );
     $ok = $stmt->execute() && $stmt->affected_rows === 1;
     $stmt->close();
@@ -41,7 +42,8 @@ function updateRequestByOrganiser(
     int $organiser_id,
     string $event_type,
     string $requested_date,
-    int $participants
+    int $participants,
+    int $is_public
 ) {
     global $connection;
 
@@ -53,7 +55,7 @@ function updateRequestByOrganiser(
     ");
     $stmt->bind_param("ssiii",
         $event_type, $requested_date, $participants,
-        $request_id, $organiser_id
+        $request_id, $organiser_id, $is_public
     );
     $ok = $stmt->execute() && $stmt->affected_rows === 1;
     $stmt->close();

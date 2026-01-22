@@ -11,6 +11,15 @@ $request = getRequestById($request_id);
 if (!$request) die("Request not found");
 
 $errors = [];
+
+$allowed_types = [
+    'private_party'   => 'Private Party',
+    'corporate_party' => 'Corporate Party',
+    'team_building'   => 'Team Building',
+    'birthday'        => 'Birthday',
+    'other'           => 'Other'
+];
+
 $clients = getUsersByRole('client');
 $organisers = getUsersByRole('organiser');
 
@@ -51,47 +60,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <div class="card">
         <h1>Edit Event Request</h1>
-        <p><a href="dashboard.php">Back to dashboard</a></p>
+        <p><a href="dashboard.php" class="button">Back to dashboard</a></p>
 
         <?php if ($errors): ?>
             <div class="alert alert-error">
                 <ul>
-                    <?php foreach ($errors as $e): ?>
-                        <li><?php echo htmlspecialchars($e); ?></li>
+                    <?php foreach($errors as $e): ?>
+                        <li><?= htmlspecialchars($e) ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
         <?php endif; ?>
 
-        <form method="post" action="editRequest.php?request_id=<?php echo $request_id; ?>">
-            <label for="client">Client</label>
-            <select name="client_id" id="client" required>
-                <?php foreach ($clients as $c): ?>
-                    <option value="<?php echo $c['id']; ?>" <?php echo ($client_id==$c['id'])?'selected':''; ?>>
-                        <?php echo htmlspecialchars($c['username']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <label for="organiser">Organiser</label>
-            <select name="organiser_id" id="organiser" required>
-                <?php foreach ($organisers as $o): ?>
-                    <option value="<?php echo $o['id']; ?>" <?php echo ($organiser_id==$o['id'])?'selected':''; ?>>
-                        <?php echo htmlspecialchars($o['username']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
+        <form method="post">
             <label for="event_type">Event Type</label>
-            <input type="text" name="event_type" id="event_type" value="<?php echo htmlspecialchars($event_type); ?>" required>
+            <select name="event_type" id="event_type" required>
+                <option value="">Select type</option>
+                <?php foreach ($allowed_types as $key => $label): ?>
+                    <option value="<?= htmlspecialchars($key) ?>" <?= ($request['event_type'] === $key) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
             <label for="requested_date">Requested Date</label>
-            <input type="date" name="requested_date" id="requested_date" value="<?php echo htmlspecialchars($requested_date); ?>" required>
+            <input type="date" name="requested_date" id="requested_date" value="<?= htmlspecialchars($request['requested_date']) ?>" required>
 
             <label for="participants">Participants</label>
-            <input type="number" name="participants" id="participants" min="1" value="<?php echo htmlspecialchars($participants); ?>" required>
+            <input type="number" name="participants" id="participants" min="1" value="<?= (int)$request['participants'] ?>" required>
 
-            <button type="submit">Update Request</button>
+            <label for="is_public">Visibility</label>
+            <select name="is_public" id="is_public" required>
+                <option value="0" <?= $request['is_public'] == 0 ? 'selected' : '' ?>>Private</option>
+                <option value="1" <?= $request['is_public'] == 1 ? 'selected' : '' ?>>Public</option>
+            </select>
+
+            <button type="submit" class="button">Update Request</button>
         </form>
     </div>
 </div>

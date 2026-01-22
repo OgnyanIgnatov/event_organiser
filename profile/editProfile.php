@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p>
             <a href="../<?= htmlspecialchars($_SESSION['role']) ?>/dashboard.php">
-                ← Back to dashboard
+                Back to dashboard
             </a>
         </p>
 

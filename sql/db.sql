@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS event_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     client_id INT NOT NULL,
     organiser_id INT NOT NULL,
-    event_type ENUM('private_party','corporate party','team_building','birthday','other') NOT NULL,
+    event_type ENUM('private_party','corporate_party','team_building','birthday','other') NOT NULL,
     requested_date DATE NOT NULL,
     participants INT NOT NULL,
     status ENUM('pending','accepted_by_organiser','rejected_by_organiser','accepted_by_client','declined_by_client','needs_correction','completed') NOT NULL DEFAULT 'pending',
@@ -34,9 +34,10 @@ CREATE TABLE IF NOT EXISTS event_requests (
 
 CREATE TABLE IF NOT EXISTS feedbacks (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    request_id INT  NOT NULL,
-    rating TINYINT  NOT NULL,
+    request_id INT NOT NULL,
+    rating TINYINT NOT NULL,
     comment TEXT DEFAULT NULL,
+    role ENUM('client','organiser') NOT NULL DEFAULT 'client',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_feedback_request FOREIGN KEY (request_id) REFERENCES event_requests(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -58,4 +59,17 @@ CREATE TABLE IF NOT EXISTS blacklists (
   PRIMARY KEY (reporter_id, reported_id),
   CONSTRAINT fk_blacklist_reporter FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_blacklist_reported FOREIGN KEY (reported_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `comments` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `request_id` INT  NOT NULL,
+    `user_id` INT NOT NULL,
+    `user_role` ENUM('client', 'organiser') NOT NULL,
+    `comment` TEXT NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX (`request_id`),
+    FOREIGN KEY (`request_id`) REFERENCES `event_requests`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

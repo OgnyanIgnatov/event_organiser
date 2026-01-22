@@ -9,11 +9,18 @@ $request_id = (int)($_GET['request_id'] ?? 0);
 $request = getRequestById($request_id);
 if (!$request || $request['organiser_id'] != $organiser_id) die("Access denied");
 
-// Only allow editing if status permits
 $allowed = ['accepted_by_organiser','declined_by_client'];
 if (!in_array($request['status'], $allowed)) die("Request cannot be edited");
 
 $errors = [];
+
+$allowed_types = [
+    'private_party'   => 'Private Party',
+    'corporate_party' => 'Corporate Party',
+    'team_building'   => 'Team Building',
+    'birthday'        => 'Birthday',
+    'other'           => 'Other'
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $res = updateRequestByOrganiser(
@@ -21,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $organiser_id,
         trim($_POST['event_type']),
         $_POST['requested_date'],
-        (int)$_POST['participants']
+        (int)$_POST['participants'],
+        (int)$_POST['is_public']
     );
 
     if ($res === true) {
@@ -48,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($errors): ?>
             <div class="alert alert-error">
                 <ul>
-                    <?php foreach ($errors as $e): ?>
+                    <?php foreach($errors as $e): ?>
                         <li><?= htmlspecialchars($e) ?></li>
                     <?php endforeach; ?>
                 </ul>
@@ -57,13 +65,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="post">
             <label for="event_type">Event Type</label>
-            <input type="text" name="event_type" id="event_type" value="<?= htmlspecialchars($request['event_type']) ?>" required>
+            <select name="event_type" id="event_type" required>
+                <option value="">Select type</option>
+                <?php foreach ($allowed_types as $key => $label): ?>
+                    <option value="<?= htmlspecialchars($key) ?>" <?= ($request['event_type'] === $key) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
             <label for="requested_date">Requested Date</label>
-            <input type="date" name="requested_date" id="requested_date" value="<?= $request['requested_date'] ?>" required>
+            <input type="date" name="requested_date" id="requested_date" value="<?= htmlspecialchars($request['requested_date']) ?>" required>
 
             <label for="participants">Participants</label>
-            <input type="number" name="participants" id="participants" min="1" value="<?= $request['participants'] ?>" required>
+            <input type="number" name="participants" id="participants" min="1" value="<?= (int)$request['participants'] ?>" required>
+
+            <label for="is_public">Visibility</label>
+            <select name="is_public" id="is_public" required>
+                <option value="0" <?= $request['is_public'] == 0 ? 'selected' : '' ?>>Private</option>
+                <option value="1" <?= $request['is_public'] == 1 ? 'selected' : '' ?>>Public</option>
+            </select>
 
             <button type="submit" class="button">Update Request</button>
         </form>

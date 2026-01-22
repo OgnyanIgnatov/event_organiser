@@ -4,18 +4,18 @@ require_once '../middlewares/requireClient.php';
 require_once '../controllers/clientController.php';
 
 $request_id = (int)($_GET['request_id'] ?? 0);
-if(!$request_id) die("Invalid request");
+if (!$request_id) die("Invalid request");
 
 $errors = [];
 $success = '';
 
-if($_SERVER['REQUEST_METHOD']==='POST'){
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rating = (int)($_POST['rating'] ?? 0);
     $comment = trim($_POST['comment'] ?? '');
 
     $res = submitFeedback($request_id, $rating, $comment);
 
-    if($res === true) {
+    if ($res === true) {
         $success = "Feedback submitted successfully";
     } else {
         $errors[] = $res;
@@ -33,18 +33,16 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <div class="container">
     <div class="card">
         <h1>Submit Feedback</h1>
-        <p>
-            <a href="dashboard.php" class="button">Back to dashboard</a>
-        </p>
+        <p><a href="dashboard.php" class="button">Back to dashboard</a></p>
 
-        <?php if($success): ?>
+        <?php if ($success): ?>
             <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
         <?php endif; ?>
 
-        <?php if($errors): ?>
+        <?php if ($errors): ?>
             <div class="alert alert-error">
                 <ul>
-                    <?php foreach($errors as $e): ?>
+                    <?php foreach ($errors as $e): ?>
                         <li><?= htmlspecialchars($e) ?></li>
                     <?php endforeach; ?>
                 </ul>
@@ -52,11 +50,15 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         <?php endif; ?>
 
         <form method="post">
-            <label for="rating">Rating (1-5)</label>
-            <input type="number" name="rating" id="rating" min="1" max="5" value="<?= $_POST['rating'] ?? '' ?>" required>
+            <div class="form-group">
+                <label for="rating">Rating (1-5)</label>
+                <input type="number" name="rating" id="rating" min="1" max="5" value="<?= htmlspecialchars($_POST['rating'] ?? '') ?>" required>
+            </div>
 
-            <label for="comment">Comment</label>
-            <textarea name="comment" id="comment"><?= htmlspecialchars($_POST['comment'] ?? '') ?></textarea>
+            <div class="form-group">
+                <label for="comment">Comment</label>
+                <textarea name="comment" id="comment" placeholder="Write your comment here..."><?= htmlspecialchars($_POST['comment'] ?? '') ?></textarea>
+            </div>
 
             <button type="submit" class="button">Submit Feedback</button>
         </form>

@@ -53,23 +53,19 @@ $stmt->close();
 <meta charset="UTF-8">
 <title>Event Gallery</title>
 <link rel="stylesheet" href="../css/style.css">
-<style>
-.gallery { display: flex; flex-wrap: wrap; gap: 10px; }
-.gallery img { width: 200px; height: auto; border-radius: 5px; border: 1px solid #ccc; }
-</style>
 </head>
 <body>
 <div class="container">
     <div class="card">
         <h1>Event Gallery</h1>
-        <p><a href="dashboard.php">Back to Dashboard</a></p>
+        <p><a href="dashboard.php" class="button">Back to Dashboard</a></p>
 
         <?php if ($success): ?>
             <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
         <?php endif; ?>
         <?php if ($errors): ?>
             <div class="alert alert-error">
-                <ul><?php foreach($errors as $e) echo "<li>".htmlspecialchars($e)."</li>"; ?></ul>
+                <ul><?php foreach ($errors as $e) echo "<li>".htmlspecialchars($e)."</li>"; ?></ul>
             </div>
         <?php endif; ?>
 
@@ -77,7 +73,6 @@ $stmt->close();
             <h2>Uploaded Images</h2>
             <div class="gallery">
                 <?php foreach ($images as $img): ?>
-                    <?php if ($_SESSION['role'] === 'client' && !$img['is_public']) continue; ?>
                     <div>
                         <img src="../uploads/<?= htmlspecialchars($img['image_path']) ?>" alt="Event Image">
                     </div>
@@ -87,14 +82,16 @@ $stmt->close();
             <p>No images uploaded yet.</p>
         <?php endif; ?>
 
-        <?php if ($_SESSION['role'] === 'organiser' && in_array($requestData['status'], ['accepted_by_organiser','declined_by_client','accepted_by_client'])): ?>
-        <form method="post" enctype="multipart/form-data">
-            <label>Select Image:</label>
-            <input type="file" name="image" accept="image/*" required>
-            <button type="submit">Upload</button>
-        </form>
-        <?php elseif ($_SESSION['role'] === 'client' && $requestData['status'] === 'accepted_by_client'): ?>
-            <p>Gallery is available for viewing:</p>
+        <?php if (in_array($requestData['status'], ['accepted_by_organiser','accepted_by_client','declined_by_client'])): ?>
+            <form method="post" enctype="multipart/form-data" style="margin-top: 1em;">
+                <div class="form-group">
+                    <label>Select Image:</label>
+                    <input type="file" name="image" accept="image/*" required>
+                </div>
+                <button type="submit" class="button">Upload</button>
+            </form>
+        <?php else: ?>
+            <p>Gallery is available for viewing.</p>
         <?php endif; ?>
     </div>
 </div>

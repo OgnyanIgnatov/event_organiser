@@ -23,8 +23,8 @@ p, li, label {
 }
 
 .container {
-    width: 90%;
-    max-width: 1100px;
+    width: 95%;
+    max-width: 2100px;
     margin: 40px auto;
     padding: 0 15px;
 }
@@ -40,6 +40,24 @@ p, li, label {
 form {
     width: 100%;
     margin-top: 10px;
+}
+
+.form-group { 
+    margin-bottom: 15px; 
+}
+
+.form-group label { 
+    display: block; font-weight: bold; margin-bottom: 5px; 
+}
+.form-group input[type="number"],
+.form-group textarea { 
+    width: 100%; padding: 8px; box-sizing: border-box; 
+}
+.form-group textarea { 
+    resize: vertical; min-height: 80px; 
+}
+.button { 
+    margin-top: 10px; display: inline-block; 
 }
 
 input[type="text"],
@@ -163,6 +181,41 @@ a:hover {
     margin: 0;
     width: 16px;
     height: 16px;
+}
+
+.gallery { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+    margin-top: 10px; 
+}
+.gallery img { 
+    width: 200px; 
+    height: auto; 
+    border-radius: 5px; 
+    border: 1px solid #ccc; 
+}
+
+.comment-box { 
+    border: 1px solid #ccc; 
+    border-radius: 5px; 
+    padding: 10px; 
+    margin-bottom: 10px; 
+}
+.comment-header { 
+    font-weight: bold; 
+    margin-bottom: 5px; 
+}
+.comment-time { 
+    color: #666; 
+    font-size: 0.85em; 
+}
+textarea { 
+    width: 100%; 
+    min-height: 80px; 
+    border-radius: 5px; 
+    border: 1px solid #ccc; 
+    padding: 5px; 
 }
 
 @media (max-width: 768px) {
