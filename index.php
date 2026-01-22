@@ -31,7 +31,7 @@ else{
 <head>
     <meta charset="UTF-8">
     <title>Event Organiser</title>
-    <link rel="stylesheet" href="css/style.css"> <!-- ако е ../css/style.css, смени -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 

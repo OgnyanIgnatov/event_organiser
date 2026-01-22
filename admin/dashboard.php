@@ -23,7 +23,7 @@ $errors  = $_GET['errors'] ?? '';
         <h1>Admin Dashboard</h1>
         <p>
             Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong> |
-            <a href="../index.php">Home Page</a> | 
+            <a href="../index.php">Home</a> | 
             <a href="../auth/logout.php">Logout</a>
         </p>
 
@@ -64,15 +64,14 @@ $errors  = $_GET['errors'] ?? '';
                              onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
                         <?php endif; ?>
                         <?php if ($u['id'] != $_SESSION['id']): ?>
-                            |
                             <?php if ($u['is_active']): ?>
-                                <a href="blockUser.php?user_id=<?php echo $u['id']; ?>"
+                                | <a href="blockUser.php?user_id=<?php echo $u['id']; ?>"
                                     onclick="return confirm('Block this user?')"
                                 >
                                     Block
                                 </a>
                             <?php else: ?>
-                                <a href="unblockUser.php?user_id=<?php echo $u['id']; ?>"
+                                | <a href="unblockUser.php?user_id=<?php echo $u['id']; ?>"
                                 onclick="return confirm('Unblock this user?')"
                                 >
                                     Unblock
